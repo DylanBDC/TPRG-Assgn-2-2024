@@ -7,6 +7,9 @@
 # credit to the original author(s). I havent used any
 # code from other sources other than referncing the course material
 
+#Cited
+# https://www.datacamp.com/tutorial/json-data-python?utm_source=google&utm_medium=paid_search
+# https://www.digitalocean.com/community/tutorials/python-remove-character-from-string
 
 # This server runs on Pi, sends Pi's your 4 arguments from the vcgencmds, sent as Json object.
 
@@ -24,7 +27,7 @@ port = 5000
 
 s.bind((host, port))
 s.listen(5)
-print("server active") # displays if the server has been turned on
+print("server active ctrl-c to shut down") # displays if the server has been turned on
 
 
 def RPi_temp():
@@ -33,7 +36,7 @@ def RPi_temp():
     '''
     #gets the Core Temperature from Pi, ref https://github.com/nicmcd/vcgencmd/blob/master/README.md
     core = os.popen('vcgencmd measure_temp').readline() #gets from the os, using vcgencmd - the core-temperature
-    core_temp = core.strip('temp=') # remove unwanted text using .strip
+    core_temp = core.strip('temp=') # remove unwanted text using .strip (already rounded to one decimal place)
     return core_temp
 
 def RPi_volts():
@@ -42,7 +45,7 @@ def RPi_volts():
     '''
     # ref https://github.com/nicmcd/vcgencmd/blob/master/README.md
     volts = os.popen('vcgencmd measure_volts core').readline() #gets from the os, using vcgencmd
-    core_volts = volts.strip('volt=') # remove unwanted text using .strip
+    core_volts = round(float(volts.strip('volt=').replace('V', '')), 1) # remove unwanted text using .strip and .replace and round to one decimal place
     return core_volts
 
 def Core_clock():
@@ -51,8 +54,9 @@ def Core_clock():
     '''
     # ref https://github.com/nicmcd/vcgencmd/blob/master/README.md
     clock = os.popen('vcgencmd measure_clock arm').readline() #gets from the os, using vcgencmd
-    core_clock = clock.strip('clock=') # remove unwanted text using .strip
-    return core_clock
+    core_clock = float(clock.replace('frequency(48)=', '')) # remove unwanted text using .replace and convert to a float
+    core_GHz = round(core_clock/1000000000, 1)
+    return core_GHz
 
 def Gpu_core():
     '''
@@ -60,8 +64,9 @@ def Gpu_core():
     '''
     # ref https://github.com/nicmcd/vcgencmd/blob/master/README.md
     Gpu = os.popen('vcgencmd measure_clock core').readline() #gets from the os, using vcgencmd
-    Gpu_core = Gpu.strip('clock=') # remove unwanted text using .strip
-    return Gpu_core
+    Gpu_core = float(Gpu.replace('frequency(1)=', '')) # remove unwanted text using .replace and convert to a float
+    Gpu_GHz = round(Gpu_core/1000000000, 1) # Change to GHz and round to one decimal place
+    return Gpu_GHz
 
 def VideoCore_voltage():
     '''
@@ -69,7 +74,7 @@ def VideoCore_voltage():
     '''
     # ref https://github.com/nicmcd/vcgencmd/blob/master/README.md
     video = os.popen('vcgencmd measure_volts core').readline() #gets from the os, using vcgencmd
-    video_voltage = video.strip('volt=') # remove unwanted text using .strip
+    video_voltage = round(float(video.strip('volt=').replace('V', '')), 1) # remove unwanted text using .strip and .replace and round to one decimal place
     return video_voltage
 
 # loop to keep connecting to clients
@@ -97,6 +102,9 @@ while True:
             #print(jsonbyte) # optional printout to see data flow (i used it for testing(logging))
             
     except ConnectionResetError: # if the client disconnects then the program will stop sending data
+        print("the client has disconnected")
+        c.close()
+    except BrokenPipeError: # when the client disconnects using ctrl-c will stop sending the data
         print("the client has disconnected")
         c.close()
     except KeyboardInterrupt: # press ctrl-c to exit the program
