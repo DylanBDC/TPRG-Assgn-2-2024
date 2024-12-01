@@ -10,6 +10,7 @@
 #Cited
 #https://www.datacamp.com/tutorial/json-data-python?utm_source=google&utm_medium=paid_search
 
+
 import socket
 import json
 import time
@@ -34,10 +35,16 @@ try:
         core = data["Temperature"]
         volts = data["Voltage"]
         core_clock = data["core-clock"]
+        Gpu_clock = data["GPU-Clock"]
+        video_voltage = data["Video-voltage"]
+        
         #print(encoded_string)
-        print("Core Temperature: ", core)
-        print("Core Voltage: ", volts)
-        print("Core Clock: ", core_clock)
+        print("Core Temperature:", core)
+        print("Core Voltage:", volts)
+        print("Core Clock:", core_clock)
+        print("GPU Core Clock:", Gpu_clock)
+        print("Video Core Voltage:", video_voltage)
+        print("") # added a space between updates
         #encoded_string = b''
 
 except socket.gaierror:
