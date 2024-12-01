@@ -59,6 +59,26 @@ def Core_clock():
     #jsonbytevolt = bytes(voltage, "UTF-8")
     
     return core_clock
+
+def Gpu_core():
+    
+    Gpu = os.popen('vcgencmd measure_clock core').readline()
+    Gpu_core = Gpu.strip('clock=')
+    #voltage = {"Core Voltage": core}
+    #voltage = json.dumps(voltage)
+    #jsonbytevolt = bytes(voltage, "UTF-8")
+    
+    return Gpu_core
+
+def VideoCore_voltage():
+    
+    video = os.popen('vcgencmd measure_volts core').readline()
+    video_voltage = video.strip('volt=')
+    #voltage = {"Core Voltage": core}
+    #voltage = json.dumps(voltage)
+    #jsonbytevolt = bytes(voltage, "UTF-8")
+    
+    return video_voltage
     
 c, addr = s.accept()
 print ('Got connection from',addr)
@@ -70,8 +90,10 @@ while True:
     core = RPi_temp()
     volts = RPi_volts()
     core_clock = Core_clock()
+    Gpu_clock = Gpu_core()
+    video_voltage = VideoCore_voltage()
   
-    jsonResult = {"Temperature": core, "Voltage": volts, "core-clock": core_clock}
+    jsonResult = {"Temperature": core, "Voltage": volts, "core-clock": core_clock, "GPU-Clock": Gpu_clock, "Video-voltage": video_voltage}
     jsonResult = json.dumps(jsonResult)
     jsonbyte = bytearray(jsonResult, "utf-8")
     #res = bytes(str(RPi_temp()), 'utf-8') # needs to be a byte
