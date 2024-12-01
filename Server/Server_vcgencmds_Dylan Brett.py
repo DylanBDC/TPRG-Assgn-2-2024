@@ -23,11 +23,14 @@ host = '10.0.0.178' # Localhost
 port = 5000
 s.bind((host, port))
 s.listen(5)
+print("server active")
 
 def RPi_temp():
+
     #gets the Core Temperature from Pi, ref https://github.com/nicmcd/vcgencmd/blob/master/README.md
     #t = os.popen('vcgencmd measure_volts ain1').readline() #gets from the os, using vcgencmd - the core-temperature
     core = os.popen('vcgencmd measure_temp').readline()
+    core_temp = core.strip('temp=')
     # initialising json object string
     #ini_string = {"Temperature": core}
     #ini_string = json.dumps(ini_string)
@@ -35,32 +38,46 @@ def RPi_temp():
     # converting string to json
     #f_dict = eval(ini_string) # The eval() function evaluates JavaScript code represented as a string and returns its completion value.
     #return f_dict
-    return core
+    return core_temp
 
-def volts():
+def RPi_volts():
+
     volts = os.popen('vcgencmd measure_volts core').readline()
-    
+    core_volts = volts.strip('volt=')
     #voltage = {"Core Voltage": core}
     #voltage = json.dumps(voltage)
     #jsonbytevolt = bytes(voltage, "UTF-8")
     
-    return volts
-    
-    
+    return core_volts
 
+def Core_clock():
+    
+    clock = os.popen('vcgencmd measure_clock arm').readline()
+    core_clock = clock.strip('clock=')
+    #voltage = {"Core Voltage": core}
+    #voltage = json.dumps(voltage)
+    #jsonbytevolt = bytes(voltage, "UTF-8")
+    
+    return core_clock
+    
+c, addr = s.accept()
+print ('Got connection from',addr)
 
 
 while True:
-    c, addr = s.accept()
-    print ('Got connection from',addr)
+#     c, addr = s.accept()
+#     print ('Got connection from',addr)
     core = RPi_temp()
-    volts = volts()
+    volts = RPi_volts()
+    core_clock = Core_clock()
   
-    jsonResult = {"Temperature": core, "Voltage": volts}
+    jsonResult = {"Temperature": core, "Voltage": volts, "core-clock": core_clock}
     jsonResult = json.dumps(jsonResult)
-    jsonbyte = bytearray(jsonResult, "UTF-8")
+    jsonbyte = bytearray(jsonResult, "utf-8")
     #res = bytes(str(RPi_temp()), 'utf-8') # needs to be a byte
     c.send(jsonbyte) # sends data as a byte type
+    time.sleep(1)
+    print(jsonbyte)
     #c.send(volts())
-    c.close()
+    #c.close()
 
