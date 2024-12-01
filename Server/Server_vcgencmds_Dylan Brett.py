@@ -21,9 +21,14 @@ import json
 s = socket.socket()
 host = '10.0.0.178' # Localhost
 port = 5000
+
 s.bind((host, port))
 s.listen(5)
 print("server active")
+pass
+
+
+
 
 def RPi_temp():
 
@@ -80,26 +85,39 @@ def VideoCore_voltage():
     
     return video_voltage
     
-c, addr = s.accept()
-print ('Got connection from',addr)
 
 
+# loop to keep connecting to clients
 while True:
 #     c, addr = s.accept()
 #     print ('Got connection from',addr)
-    core = RPi_temp()
-    volts = RPi_volts()
-    core_clock = Core_clock()
-    Gpu_clock = Gpu_core()
-    video_voltage = VideoCore_voltage()
+    try:
+        c, addr = s.accept()
+        print ('Got connection from',addr)
+        
+        # loop to keep sending data
+        while True:
+            core = RPi_temp()
+            volts = RPi_volts()
+            core_clock = Core_clock()
+            Gpu_clock = Gpu_core()
+            video_voltage = VideoCore_voltage()
   
-    jsonResult = {"Temperature": core, "Voltage": volts, "core-clock": core_clock, "GPU-Clock": Gpu_clock, "Video-voltage": video_voltage}
-    jsonResult = json.dumps(jsonResult)
-    jsonbyte = bytearray(jsonResult, "utf-8")
-    #res = bytes(str(RPi_temp()), 'utf-8') # needs to be a byte
-    c.send(jsonbyte) # sends data as a byte type
-    time.sleep(1)
-    print(jsonbyte)
-    #c.send(volts())
-    #c.close()
+            jsonResult = {"Temperature": core, "Voltage": volts, "core-clock": core_clock, "GPU-Clock": Gpu_clock, "Video-voltage": video_voltage}
+            jsonResult = json.dumps(jsonResult) # used to serialize the Python object and write it to the JSON file
+            jsonbyte = bytearray(jsonResult, "utf-8")
+            #res = bytes(str(RPi_temp()), 'utf-8') # needs to be a byte
+            c.send(jsonbyte) # sends data as a byte type
+            time.sleep(1)
+            #print(jsonbyte) # optional printout to see data flow (i used it for logging)
+            #c.send(volts())
+            #c.close()
+    except ConnectionResetError:
+        print("the client has disconnected")
+        c.close()
+    except KeyboardInterrupt:
+        print("")
+        print("Server Shutting down")
+        c.close()
+        exit(1)
 
