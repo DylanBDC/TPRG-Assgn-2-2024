@@ -12,6 +12,7 @@
 
 import socket
 import json
+import time
 
 # Runs on PC, directly from Thonny
 # The client
@@ -21,18 +22,32 @@ print("The client")
 s = socket.socket()
 host = '10.0.0.178'  # ip of raspberry PI, running the server
 port = 5000
-s.connect((host, port))
+#s.connect((host, port))
 
+#while True:
+try:
+    s.connect((host, port))
+    while True:
+        encoded_string = s.recv(1024)
+        decoded_string = encoded_string.decode('utf-8') # decode the string
+        data = json.loads(decoded_string) # converts the json string into a python object
+        core = data["Temperature"]
+        volts = data["Voltage"]
+        core_clock = data["core-clock"]
+        #print(encoded_string)
+        print("Core Temperature: ", core)
+        print("Core Voltage: ", volts)
+        print("Core Clock: ", core_clock)
+        #encoded_string = b''
 
-encoded_string = s.recv(1024)
-#data = encoded_string.decode('utf-8')
-data = json.loads(encoded_string) # json.loads decodes the JSON string into a python object
-core = data['Temperature'] # access the temp using the temperature key in the data dictionarry 
-volts = data['Voltage'] # access voltage in data
-print(encoded_string)
-print("Core Temperature:", core)
-print("Core Voltage", volts)
-        
-
-s.close()
+except socket.gaierror:
+    print('error resolving host')
+    #s.close()
+    
+except KeyboardInterrupt:
+    print("client exiting...") # exit the program if ctrl-c
+    
+finally:
+    print("lost connection")
+    s.close()
     
