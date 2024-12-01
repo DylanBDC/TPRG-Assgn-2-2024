@@ -8,8 +8,8 @@
 # code from other sources other than referncing the course material
 
 #Cited
-#https://www.datacamp.com/tutorial/json-data-python?utm_source=google&utm_medium=paid_search
-
+# https://www.datacamp.com/tutorial/json-data-python?utm_source=google&utm_medium=paid_search
+# https://www.digitalocean.com/community/tutorials/python-remove-character-from-string
 
 import socket
 import json
@@ -17,44 +17,43 @@ import time
 
 # Runs on PC, directly from Thonny
 # The client
-print("The client")
-
-
+print("Client ready ctrl-c to exit")
 s = socket.socket()
 host = '10.0.0.178'  # ip of raspberry PI, running the server
 port = 5000
-#s.connect((host, port))
 
-#while True:
+# try to connect to server (if it doesnt connect it will close and print lost connection)
 try:
     s.connect((host, port))
     while True:
         encoded_string = s.recv(1024)
         decoded_string = encoded_string.decode('utf-8') # decode the string
         data = json.loads(decoded_string) # converts the json string into a python object
+        # access the dictionary values
         core = data["Temperature"]
         volts = data["Voltage"]
         core_clock = data["core-clock"]
         Gpu_clock = data["GPU-Clock"]
         video_voltage = data["Video-voltage"]
-        
-        #print(encoded_string)
-        print("Core Temperature:", core)
-        print("Core Voltage:", volts)
-        print("Core Clock:", core_clock)
-        print("GPU Core Clock:", Gpu_clock)
-        print("Video Core Voltage:", video_voltage)
-        print("") # added a space between updates
-        #encoded_string = b''
 
-except socket.gaierror:
+        # print out the real time data
+        #print(encoded_string) # shows the raw data coming in
+        print("Core Temperature:", core)
+        print("Core Voltage:", volts, "V")
+        print("Core Clock:", core_clock, "GHz")
+        print("GPU Core Clock:", Gpu_clock, "GHz")
+        print("Video Core Voltage:", video_voltage, "V")
+        print("") # added a space between updates
+
+except s.gaierror:
     print('error resolving host')
-    #s.close()
+    s.close()
     
 except KeyboardInterrupt:
     print("client exiting...") # exit the program if ctrl-c
     
 finally:
-    print("lost connection")
+    print("lost connection") # if the connection is lost the client will exit
     s.close()
+    exit(1)
     
