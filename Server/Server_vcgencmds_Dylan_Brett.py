@@ -10,6 +10,7 @@
 #Cited
 # https://www.datacamp.com/tutorial/json-data-python?utm_source=google&utm_medium=paid_search
 # https://www.digitalocean.com/community/tutorials/python-remove-character-from-string
+# https://www.datacamp.com/tutorial/python-trim
 
 # This server runs on Pi, sends Pi's your 4 arguments from the vcgencmds, sent as Json object.
 
