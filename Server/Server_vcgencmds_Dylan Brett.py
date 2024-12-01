@@ -19,103 +19,87 @@ import os, time
 import json
 
 s = socket.socket()
-host = '10.0.0.178' # Localhost
+host = '10.0.0.178' # Localhost (server IP)
 port = 5000
 
 s.bind((host, port))
 s.listen(5)
-print("server active")
-pass
-
-
+print("server active") # displays if the server has been turned on
 
 
 def RPi_temp():
-
+    '''
+    This def gets the Temperature of the RPis core
+    '''
     #gets the Core Temperature from Pi, ref https://github.com/nicmcd/vcgencmd/blob/master/README.md
-    #t = os.popen('vcgencmd measure_volts ain1').readline() #gets from the os, using vcgencmd - the core-temperature
-    core = os.popen('vcgencmd measure_temp').readline()
-    core_temp = core.strip('temp=')
-    # initialising json object string
-    #ini_string = {"Temperature": core}
-    #ini_string = json.dumps(ini_string)
-    #jsonbyte = bytes(ini_string, "UTF-8")
-    # converting string to json
-    #f_dict = eval(ini_string) # The eval() function evaluates JavaScript code represented as a string and returns its completion value.
-    #return f_dict
+    core = os.popen('vcgencmd measure_temp').readline() #gets from the os, using vcgencmd - the core-temperature
+    core_temp = core.strip('temp=') # remove unwanted text using .strip
     return core_temp
 
 def RPi_volts():
-
-    volts = os.popen('vcgencmd measure_volts core').readline()
-    core_volts = volts.strip('volt=')
-    #voltage = {"Core Voltage": core}
-    #voltage = json.dumps(voltage)
-    #jsonbytevolt = bytes(voltage, "UTF-8")
-    
+    '''
+    This def gets the Voltage of the RPis core
+    '''
+    # ref https://github.com/nicmcd/vcgencmd/blob/master/README.md
+    volts = os.popen('vcgencmd measure_volts core').readline() #gets from the os, using vcgencmd
+    core_volts = volts.strip('volt=') # remove unwanted text using .strip
     return core_volts
 
 def Core_clock():
-    
-    clock = os.popen('vcgencmd measure_clock arm').readline()
-    core_clock = clock.strip('clock=')
-    #voltage = {"Core Voltage": core}
-    #voltage = json.dumps(voltage)
-    #jsonbytevolt = bytes(voltage, "UTF-8")
-    
+    '''
+    This def gets the Clock speed of the RPis core
+    '''
+    # ref https://github.com/nicmcd/vcgencmd/blob/master/README.md
+    clock = os.popen('vcgencmd measure_clock arm').readline() #gets from the os, using vcgencmd
+    core_clock = clock.strip('clock=') # remove unwanted text using .strip
     return core_clock
 
 def Gpu_core():
-    
-    Gpu = os.popen('vcgencmd measure_clock core').readline()
-    Gpu_core = Gpu.strip('clock=')
-    #voltage = {"Core Voltage": core}
-    #voltage = json.dumps(voltage)
-    #jsonbytevolt = bytes(voltage, "UTF-8")
-    
+    '''
+    This def gets the GPU clock speed of the RPis core
+    '''
+    # ref https://github.com/nicmcd/vcgencmd/blob/master/README.md
+    Gpu = os.popen('vcgencmd measure_clock core').readline() #gets from the os, using vcgencmd
+    Gpu_core = Gpu.strip('clock=') # remove unwanted text using .strip
     return Gpu_core
 
 def VideoCore_voltage():
-    
-    video = os.popen('vcgencmd measure_volts core').readline()
-    video_voltage = video.strip('volt=')
-    #voltage = {"Core Voltage": core}
-    #voltage = json.dumps(voltage)
-    #jsonbytevolt = bytes(voltage, "UTF-8")
-    
+    '''
+    This def gets the Video Core Voltage of the RPis core
+    '''
+    # ref https://github.com/nicmcd/vcgencmd/blob/master/README.md
+    video = os.popen('vcgencmd measure_volts core').readline() #gets from the os, using vcgencmd
+    video_voltage = video.strip('volt=') # remove unwanted text using .strip
     return video_voltage
-    
-
 
 # loop to keep connecting to clients
 while True:
-#     c, addr = s.accept()
-#     print ('Got connection from',addr)
+    # try and except to see if the client disconnects
     try:
         c, addr = s.accept()
         print ('Got connection from',addr)
         
         # loop to keep sending data
         while True:
+            # real time values of server
             core = RPi_temp()
             volts = RPi_volts()
             core_clock = Core_clock()
             Gpu_clock = Gpu_core()
             video_voltage = VideoCore_voltage()
-  
+            
+            # dictionary for the real time values (with a key and its value)  
             jsonResult = {"Temperature": core, "Voltage": volts, "core-clock": core_clock, "GPU-Clock": Gpu_clock, "Video-voltage": video_voltage}
             jsonResult = json.dumps(jsonResult) # used to serialize the Python object and write it to the JSON file
-            jsonbyte = bytearray(jsonResult, "utf-8")
-            #res = bytes(str(RPi_temp()), 'utf-8') # needs to be a byte
+            jsonbyte = bytes(jsonResult, "utf-8") # encodes the data (send as bytes)
             c.send(jsonbyte) # sends data as a byte type
-            time.sleep(1)
-            #print(jsonbyte) # optional printout to see data flow (i used it for logging)
-            #c.send(volts())
-            #c.close()
-    except ConnectionResetError:
+            time.sleep(1) # used to slow down or speed up the data being sent
+            #print(jsonbyte) # optional printout to see data flow (i used it for testing(logging))
+            
+    except ConnectionResetError: # if the client disconnects then the program will stop sending data
         print("the client has disconnected")
         c.close()
-    except KeyboardInterrupt:
+    except KeyboardInterrupt: # press ctrl-c to exit the program
         print("")
         print("Server Shutting down")
         c.close()
